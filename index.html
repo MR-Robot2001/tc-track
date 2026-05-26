@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TC Track | Thesis Consultants</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #6366f1;
+            --brand-dark: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: radial-gradient(circle at top right, #f8fafc, #eff6ff);
+            color: #1e293b;
+        }
+        h1, h2, h3, .font-heading { font-family: 'Outfit', sans-serif; }
+        
+        .premium-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .premium-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-premium:hover {
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
+            transform: scale(1.02);
+        }
+
+        .status-pill {
+            @apply px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .animate-in { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader { border-top-color: #6366f1; animation: spinner 1s cubic-bezier(0.5, 0, 0.5, 1) infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-700">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <span class="text-white font-bold text-xl">TC</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900">Thesis Consultants</h1>
+                    <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-[0.2em] -mt-1">Track Intelligence</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="planBtn" class="text-slate-600 hover:text-indigo-600 px-4 py-2 text-sm font-semibold transition-colors">Daily Plan</button>
+                <button id="addTaskBtn" class="btn-premium text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all">New Task</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full animate-in">
+        <!-- Dashboard Header -->
+        <header class="mb-12">
+            <h2 class="text-4xl font-bold text-slate-900 mb-2">Operational Overview</h2>
+            <p class="text-slate-500">Real-time task synchronization and productivity metrics.</p>
+        </header>
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="premium-card p-8 rounded-3xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+                <h3 class="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Pending</h3>
+                <div class="flex items-baseline space-x-2">
+                    <span id="pendingCount" class="text-5xl font-bold text-slate-900 tracking-tighter">0</span>
+                    <span class="text-slate-400 text-sm font-medium">units</span>
+                </div>
+            </div>
+            <div class="premium-card p-8 rounded-3xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+                <h3 class="text-indigo-500 text-sm font-bold uppercase tracking-widest mb-4">Active</h3>
+                <div class="flex items-baseline space-x-2">
+                    <span id="progressCount" class="text-5xl font-bold text-indigo-600 tracking-tighter">0</span>
+                    <span class="text-indigo-400 text-sm font-medium">live</span>
+                </div>
+            </div>
+            <div class="premium-card p-8 rounded-3xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+                <h3 class="text-emerald-500 text-sm font-bold uppercase tracking-widest mb-4">Resolved</h3>
+                <div class="flex items-baseline space-x-2">
+                    <span id="completedCount" class="text-5xl font-bold text-emerald-600 tracking-tighter">0</span>
+                    <span class="text-emerald-400 text-sm font-medium">done</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Console -->
+        <div class="premium-card rounded-3xl overflow-hidden">
+            <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white/50">
+                <h3 class="font-bold text-slate-800">Task Console</h3>
+                <div class="flex space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                    <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                    <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50">
+                            <th class="px-8 py-5">Initiative</th>
+                            <th class="px-8 py-5">Owner</th>
+                            <th class="px-8 py-5">Phase</th>
+                            <th class="px-8 py-5">Impact</th>
+                            <th class="px-8 py-5">Deadline</th>
+                            <th class="px-8 py-5 text-right">Registry</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTableBody" class="divide-y divide-slate-100 font-medium text-slate-600">
+                        <!-- Data rows -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="noTasks" class="hidden py-24 text-center">
+                <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-60h-6"></path></svg>
+                </div>
+                <p class="text-slate-400 font-medium">No active initiatives found.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-12 border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-slate-400 text-xs font-medium tracking-wide">
+            <div class="mb-4 md:mb-0">
+                &copy; 2024 THESIS CONSULTANTS OPERATIONS
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="uppercase tracking-widest">Architected by</span>
+                <span class="text-slate-900 font-bold tracking-tighter text-sm">WERWOODS</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Task Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[32px] w-full max-w-lg p-10 shadow-2xl animate-in">
+            <div class="flex justify-between items-center mb-8">
+                <h2 id="modalTitle" class="text-2xl font-bold text-slate-900">Define Initiative</h2>
+                <button id="closeModal" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="taskForm" class="space-y-6">
+                <input type="hidden" id="taskId">
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Initiative Name</label>
+                    <input type="text" id="taskName" required placeholder="Ex: Market Research Synthesis" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Assignee</label>
+                        <select id="taskAssignee" required class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium appearance-none">
+                            <!-- Options -->
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phase</label>
+                        <select id="taskStatus" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium appearance-none">
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">Active</option>
+                            <option value="Completed">Resolved</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Impact Level</label>
+                        <select id="taskPriority" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium appearance-none">
+                            <option value="Low">Standard</option>
+                            <option value="Medium">Elevated</option>
+                            <option value="High">Critical</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Deadline</label>
+                        <input type="date" id="taskDueDate" required class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+                    </div>
+                </div>
+                <div class="pt-6">
+                    <button type="submit" class="w-full btn-premium text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 transition-all">Synchronize Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Plan Modal -->
+    <div id="planModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-[40px] w-full max-w-3xl p-12 shadow-2xl max-h-[90vh] overflow-y-auto animate-in">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900">Intelligence Briefing</h2>
+                    <p id="planDateText" class="text-indigo-500 font-bold uppercase tracking-widest text-xs mt-1"></p>
+                </div>
+                <button id="closePlanModal" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-slate-600 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div id="planCaptureArea" class="bg-slate-900 rounded-[32px] p-10 mb-10 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center space-x-3 mb-10">
+                        <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">TC</span>
+                        </div>
+                        <h1 class="text-xl font-bold text-white tracking-tight">Thesis Consultants</h1>
+                    </div>
+                    
+                    <div id="planList" class="space-y-4">
+                        <!-- Tasks -->
+                    </div>
+
+                    <div class="mt-16 pt-8 border-t border-white/5 flex justify-between items-center">
+                        <div class="text-[10px] text-white/30 font-bold uppercase tracking-[0.3em]">Confidential Operations Brief</div>
+                        <div class="text-indigo-400 font-bold text-[10px] tracking-tighter uppercase">werwoods intelligence</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button id="whatsappTextBtn" class="flex flex-col items-center justify-center p-4 rounded-3xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all">
+                    <span class="text-xs font-bold uppercase tracking-widest mb-1">Text</span>
+                    <span class="font-medium">WhatsApp</span>
+                </button>
+                <button id="directShareBtn" class="flex flex-col items-center justify-center p-4 rounded-3xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-all">
+                    <span class="text-xs font-bold uppercase tracking-widest mb-1">Direct</span>
+                    <span class="font-medium">Share Image</span>
+                </button>
+                <button id="copyClipboardBtn" class="flex flex-col items-center justify-center p-4 rounded-3xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition-all">
+                    <span class="text-xs font-bold uppercase tracking-widest mb-1">Clipboard</span>
+                    <span class="font-medium">Copy</span>
+                </button>
+                <button id="downloadImageBtn" class="flex flex-col items-center justify-center p-4 rounded-3xl bg-slate-900 text-white hover:bg-slate-800 transition-all">
+                    <span class="text-xs font-bold uppercase tracking-widest mb-1">Export</span>
+                    <span class="font-medium">PNG File</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/60 backdrop-blur-md hidden flex items-center justify-center z-[100]">
+        <div class="flex flex-col items-center">
+            <div class="loader ease-linear rounded-full border-2 border-t-2 border-slate-100 h-12 w-12 mb-4"></div>
+            <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Synchronizing...</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
