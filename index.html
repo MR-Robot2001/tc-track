@@ -332,7 +332,7 @@
 
     <!-- Add Client Modal -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-[32px] w-full max-w-md p-10 shadow-2xl animate-in">
+        <div class="bg-white rounded-[32px] w-full max-w-2xl p-10 shadow-2xl animate-in max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-2xl font-bold text-slate-900">Add New Client</h2>
                 <button onclick="closeModal('clientModal')" class="text-slate-400 hover:text-slate-600 transition-colors">
@@ -340,18 +340,31 @@
                 </button>
             </div>
             <form id="clientForm" class="space-y-5">
-                <div class="space-y-1.5">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Client Name</label>
-                    <input type="text" id="clientNameInput" required placeholder="Ex: John Doe" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Client Name</label>
+                        <input type="text" id="clientNameInput" required placeholder="Ex: John Doe" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Quotation</label>
+                        <input type="number" id="quotationInput" required placeholder="0.00" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Agreed Amount</label>
+                        <input type="number" id="agreedInput" required placeholder="0.00" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+                    </div>
                 </div>
-                <div class="space-y-1.5">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Quotation Amount</label>
-                    <input type="number" id="quotationInput" required placeholder="0.00" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
+
+                <div class="border-t border-slate-100 pt-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-slate-800">Payment Phases & Deliverables</h3>
+                        <button type="button" onclick="addPhaseInputRow()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700">+ Add Phase</button>
+                    </div>
+                    <div id="phaseInputs" class="space-y-3">
+                        <!-- Dynamic Phase Rows -->
+                    </div>
                 </div>
-                <div class="space-y-1.5">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Agreed Amount</label>
-                    <input type="number" id="agreedInput" required placeholder="0.00" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium">
-                </div>
+
                 <div class="pt-4">
                     <button type="submit" class="w-full btn-premium text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 transition-all">Add Client Entry</button>
                 </div>
