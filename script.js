@@ -70,6 +70,9 @@ function setupEventListeners() {
     const clientSearch = document.getElementById('clientSearch');
     if (clientSearch) clientSearch.oninput = renderFinance;
 
+    const ownerSearch = document.getElementById('ownerSearch');
+    if (ownerSearch) ownerSearch.oninput = renderTasks;
+
     const expenseMonthFilter = document.getElementById('expenseMonthFilter');
     if (expenseMonthFilter) expenseMonthFilter.onchange = renderFinance;
 
@@ -147,12 +150,16 @@ function switchView(view) {
 // Render Tasks
 function renderTasks() {
     const body = document.getElementById('taskTableBody');
+    if (!body) return;
     body.innerHTML = '';
-    const ownerTerm = document.getElementById('ownerSearch')?.value.toLowerCase() || '';
+    
+    const ownerSearchInput = document.getElementById('ownerSearch');
+    const ownerTerm = ownerSearchInput ? ownerSearchInput.value.trim().toLowerCase() : '';
     
     const filteredTasks = tasks.filter(task => {
         if (!ownerTerm) return true;
-        return (task.assignee || 'Unassigned').toLowerCase().includes(ownerTerm);
+        const owner = (task.assignee || task.owner || 'Unassigned').toString().toLowerCase();
+        return owner.includes(ownerTerm);
     });
 
     if (filteredTasks.length === 0) {
@@ -173,11 +180,11 @@ function renderTasks() {
         tr.innerHTML = `
             <td class="px-8 py-5">
                 <div class="flex flex-col">
-                    <span class="text-slate-900 font-semibold">${task.name}</span>
+                    <span class="text-slate-900 font-semibold">${task.name || 'Untitled'}</span>
                     <span class="text-[10px] text-indigo-500 font-bold uppercase">${task.domain || 'General'} | ${task.institution || 'No Inst.'}</span>
                 </div>
             </td>
-            <td class="px-8 py-5 text-sm">${task.assignee || 'Unassigned'}</td>
+            <td class="px-8 py-5 text-sm">${task.assignee || task.owner || 'Unassigned'}</td>
             <td class="px-8 py-5">
                 <div class="flex items-center space-x-3">
                     <div class="flex-grow w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
@@ -187,12 +194,12 @@ function renderTasks() {
                 </div>
             </td>
             <td class="px-8 py-5">
-                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusClass(task.status)}">${task.status}</span>
+                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusClass(task.status)}">${task.status || 'Pending'}</span>
             </td>
             <td class="px-8 py-5">
                 <div class="flex items-center space-x-1.5">
                     <div class="w-1.5 h-1.5 rounded-full ${getPriorityColor(task.priority)}"></div>
-                    <span class="text-xs font-bold text-slate-500 uppercase">${task.priority}</span>
+                    <span class="text-xs font-bold text-slate-500 uppercase">${task.priority || 'Low'}</span>
                 </div>
             </td>
             <td class="px-8 py-5 text-sm font-bold">${formatDate(task.duedate)}</td>
