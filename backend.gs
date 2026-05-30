@@ -269,7 +269,11 @@ function sendDailyEmails() {
   employees.forEach(emp => {
     if (!emp.email) return;
     
-    const myTasks = pendingTasks.filter(t => t.assignee === emp.name);
+    const myTasks = pendingTasks.filter(t => {
+      if (!t.assignee) return false;
+      const assignees = t.assignee.split(',').map(s => s.trim());
+      return assignees.includes(emp.name);
+    });
     if (myTasks.length === 0) return; // Only send if they have tasks
     
     let myTaskListHtml = "<h3>Your Assigned Tasks</h3><ul>";

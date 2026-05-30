@@ -1,5 +1,5 @@
 // TC Track - Application Logic
-const API_URL = 'https://script.google.com/macros/s/AKfycbxbYnU9fxR84LWHINp06LCTnCrMQ22qZ6RpcK8_fIBs27lHxEg5Aea7zYXN46NbNTou1g/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwH4MPWIKpRxGtodtjQBfVuR4LUtRpijf7374oVSp0fhqHmHr-ciVKIiGoIe0JiZ_4ZVg/exec';
 
 // State Management
 let tasks = [];
@@ -704,8 +704,14 @@ function initExpenseFilters() {
 }
 
 function renderEmployeeOptions() {
-    const sel = document.getElementById('taskAssignee');
-    sel.innerHTML = employees.map(e => `<option value="${e.name}">${e.name}</option>`).join('');
+    const container = document.getElementById('assigneeContainer');
+    if (!container) return;
+    container.innerHTML = employees.map(e => `
+        <div class="flex items-center space-x-3">
+            <input type="checkbox" value="${e.name}" class="w-4 h-4 rounded text-indigo-600 border-none focus:ring-0">
+            <span class="text-sm font-medium text-slate-600">${e.name}</span>
+        </div>
+    `).join('');
 }
 
 function updateStats() {
@@ -720,7 +726,13 @@ async function editTask(id) {
     if (!task) return;
     document.getElementById('taskId').value = task.id;
     document.getElementById('taskName').value = task.name;
-    document.getElementById('taskAssignee').value = task.assignee;
+    
+    // Reset and Set Checkboxes
+    const currentAssignees = (task.assignee || '').split(',').map(s => s.trim());
+    document.querySelectorAll('#assigneeContainer input').forEach(cb => {
+        cb.checked = currentAssignees.includes(cb.value);
+    });
+
     document.getElementById('taskStatus').value = task.status;
     document.getElementById('taskPriority').value = task.priority;
     document.getElementById('taskDueDate').value = new Date(task.duedate).toISOString().split('T')[0];
