@@ -148,14 +148,20 @@ function switchView(view) {
 function renderTasks() {
     const body = document.getElementById('taskTableBody');
     body.innerHTML = '';
+    const ownerTerm = document.getElementById('ownerSearch')?.value.toLowerCase() || '';
     
-    if (tasks.length === 0) {
+    const filteredTasks = tasks.filter(task => {
+        if (!ownerTerm) return true;
+        return (task.assignee || 'Unassigned').toLowerCase().includes(ownerTerm);
+    });
+
+    if (filteredTasks.length === 0) {
         document.getElementById('noTasks').classList.remove('hidden');
         return;
     }
     document.getElementById('noTasks').classList.add('hidden');
 
-    const sortedTasks = [...tasks].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const sortedTasks = [...filteredTasks].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     sortedTasks.forEach(task => {
         const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
@@ -172,6 +178,14 @@ function renderTasks() {
                 </div>
             </td>
             <td class="px-8 py-5 text-sm">${task.assignee || 'Unassigned'}</td>
+            <td class="px-8 py-5">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-grow w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                    </div>
+                    <span class="text-[10px] font-black text-slate-400 w-8">${percent}%</span>
+                </div>
+            </td>
             <td class="px-8 py-5">
                 <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusClass(task.status)}">${task.status}</span>
             </td>
