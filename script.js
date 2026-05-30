@@ -1,5 +1,5 @@
 // TC Track - Application Logic
-const API_URL = 'https://script.google.com/macros/s/AKfycbwH4MPWIKpRxGtodtjQBfVuR4LUtRpijf7374oVSp0fhqHmHr-ciVKIiGoIe0JiZ_4ZVg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwrpywxEDi6pkvi-Ff-J68jtUA85qnjkTEmMwM_cFpbKCCr8dht-QilPm1BmGzzRd5wUQ/exec';
 
 // State Management
 let tasks = [];
@@ -176,15 +176,15 @@ function renderTasks() {
         const percent = subtasks.length > 0 ? Math.round((completed / subtasks.length) * 100) : 0;
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50/80 transition-colors group';
+        tr.className = 'hover:bg-slate-50/80 transition-colors group text-xs';
         tr.innerHTML = `
             <td class="px-8 py-5">
-                <div class="flex flex-col">
-                    <span class="text-slate-900 font-semibold">${task.name || 'Untitled'}</span>
-                    <span class="text-[10px] text-indigo-500 font-bold uppercase">${task.domain || 'General'} | ${task.institution || 'No Inst.'}</span>
-                </div>
+                <span class="text-slate-900 font-semibold">${task.name || 'Untitled'}</span>
             </td>
-            <td class="px-8 py-5 text-sm">${task.assignee || task.owner || 'Unassigned'}</td>
+            <td class="px-8 py-5 max-w-[200px] truncate" title="${task.description || ''}">${task.description || '-'}</td>
+            <td class="px-8 py-5">${task.domain || 'General'}</td>
+            <td class="px-8 py-5">${task.institution || 'No Inst.'}</td>
+            <td class="px-8 py-5">${task.assignee || 'Unassigned'}</td>
             <td class="px-8 py-5">
                 <div class="flex items-center space-x-3">
                     <div class="flex-grow w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
@@ -203,7 +203,7 @@ function renderTasks() {
                 </div>
             </td>
             <td class="px-8 py-5 text-sm font-bold">${formatDate(task.duedate)}</td>
-            <td class="px-8 py-5 text-right opacity-0 group-hover:opacity-100">
+            <td class="px-8 py-5 text-right opacity-0 group-hover:opacity-100 whitespace-nowrap">
                 <button onclick="editTask('${task.id}')" class="text-indigo-500 mr-4">Edit</button>
                 <button onclick="deleteTask('${task.id}')" class="text-rose-500">Delete</button>
             </td>
@@ -387,13 +387,15 @@ async function handleTaskSubmit(e) {
         }
     });
 
+    const selectedAssignees = Array.from(document.querySelectorAll('#assigneeContainer input:checked')).map(cb => cb.value);
+
     const taskData = {
         id: document.getElementById('taskId').value || null,
         name: document.getElementById('taskName').value,
         description: document.getElementById('taskDescription').value,
         domain: document.getElementById('taskDomain').value,
         institution: document.getElementById('taskInstitution').value,
-        assignee: document.getElementById('taskAssignee').value,
+        assignee: selectedAssignees.join(', '),
         status: document.getElementById('taskStatus').value,
         priority: document.getElementById('taskPriority').value,
         dueDate: document.getElementById('taskDueDate').value,
@@ -726,12 +728,21 @@ async function editTask(id) {
     if (!task) return;
     document.getElementById('taskId').value = task.id;
     document.getElementById('taskName').value = task.name;
+    document.getElementById('taskDescription').value = task.description || '';
+    document.getElementById('taskDomain').value = task.domain || '';
+    document.getElementById('taskInstitution').value = task.institution || '';
     
     // Reset and Set Checkboxes
     const currentAssignees = (task.assignee || '').split(',').map(s => s.trim());
     document.querySelectorAll('#assigneeContainer input').forEach(cb => {
         cb.checked = currentAssignees.includes(cb.value);
     });
+
+    // Subtasks
+    const container = document.getElementById('subtaskContainer');
+    container.innerHTML = '';
+    const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+    subtasks.forEach(s => addSubtaskRow(s.text, s.done));
 
     document.getElementById('taskStatus').value = task.status;
     document.getElementById('taskPriority').value = task.priority;
