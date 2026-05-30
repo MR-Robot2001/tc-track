@@ -110,7 +110,8 @@ function getSheetData(sheet) {
   return rows.map((row, index) => {
     let obj = { _row: index + 2 };
     headers.forEach((header, i) => {
-      obj[header.toLowerCase().replace(" ", "")] = row[i];
+      let key = header.toLowerCase().replace(/\s/g, "");
+      obj[key] = row[i];
     });
     return obj;
   });
