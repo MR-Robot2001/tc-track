@@ -1,5 +1,5 @@
 // Replace with your Google Apps Script Web App URL after deployment
-const API_URL = 'https://script.google.com/macros/s/AKfycbyy5PhOnlaRmDLNbVOuNb22Yo4aDYA8nYA6LtRyLRa_QeoxebSZP1GyoVxuKQVZjpYp4A/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwSLsMG-ZG9HBewY5Ho_fHdae59LgcVyPTejY_B4JbBi_ylMpAY2cx882FJU7Z-r0SZ7g/exec';
 
 let tasks = [];
 let employees = [];
@@ -41,6 +41,16 @@ function setupEventListeners() {
     dashboardTabBtn.onclick = () => switchView('dashboard');
     financeTabBtn.onclick = () => switchView('finance');
     
+    document.getElementById('planBtn').onclick = showDailyPlan;
+    
+    document.getElementById('addTaskBtn').onclick = () => {
+        document.getElementById('modalTitle').textContent = 'Add New Task';
+        taskForm.reset();
+        document.getElementById('taskId').value = '';
+        document.getElementById('subtaskContainer').innerHTML = '';
+        openModal('taskModal');
+    };
+
     document.getElementById('addClientBtn').onclick = () => {
         document.getElementById('clientForm').reset();
         document.getElementById('phaseInputs').innerHTML = '';
@@ -51,13 +61,6 @@ function setupEventListeners() {
     document.getElementById('addPaymentBtn').onclick = () => openModal('paymentModal');
     document.getElementById('addExpenseBtn').onclick = () => openModal('expenseModal');
     document.getElementById('closeModal').onclick = () => closeModal('taskModal');
-    document.getElementById('addTaskBtn').onclick = () => {
-        document.getElementById('modalTitle').textContent = 'Add New Task';
-        taskForm.reset();
-        document.getElementById('taskId').value = '';
-        document.getElementById('subtaskContainer').innerHTML = '';
-        openModal('taskModal');
-    };
     
     document.getElementById('clientForm').onsubmit = (e) => handleFinanceSubmit(e, 'addClient', 'clientModal');
     document.getElementById('paymentForm').onsubmit = (e) => handleFinanceSubmit(e, 'addPayment', 'paymentModal');
@@ -72,6 +75,12 @@ function setupEventListeners() {
     document.getElementById('exportExcelBtn').onclick = exportToExcel;
     
     document.getElementById('saveClientDetailsBtn').onclick = saveClientDetails;
+
+    document.getElementById('closePlanModal').onclick = () => closeModal('planModal');
+    document.getElementById('whatsappTextBtn').onclick = sharePlanWhatsApp;
+    document.getElementById('downloadImageBtn').onclick = downloadPlanImage;
+    document.getElementById('directShareBtn').onclick = sharePlanDirect;
+    document.getElementById('copyClipboardBtn').onclick = copyPlanToClipboard;
 }
 
 function switchView(view) {
@@ -402,6 +411,25 @@ async function handleFinanceSubmit(e, action, modalId) {
     }
 }
 
+function calculatePhaseAmount(input) {
+    const row = input.closest('.grid') || input.closest('.space-y-3');
+    const amountInput = row.querySelector('.phase-amount');
+    const percentage = parseFloat(input.value) || 0;
+    
+    let agreedAmount = 0;
+    const creationAgreed = document.getElementById('agreedInput');
+    
+    if (creationAgreed && creationAgreed.offsetParent !== null) {
+        agreedAmount = parseFloat(creationAgreed.value) || 0;
+    } else if (currentEditingClient) {
+        agreedAmount = parseFloat(currentEditingClient.agreedamount) || 0;
+    }
+    
+    if (amountInput && agreedAmount) {
+        amountInput.value = ((percentage / 100) * agreedAmount).toFixed(2);
+    }
+}
+
 function addPhaseInputRow(name = '', deliverable = '') {
     const container = document.getElementById('phaseInputs');
     const div = document.createElement('div');
@@ -413,7 +441,7 @@ function addPhaseInputRow(name = '', deliverable = '') {
         </div>
         <div class="md:col-span-2">
             <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">%</label>
-            <input type="number" step="0.01" placeholder="25" class="phase-percent w-full bg-white border-none rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500">
+            <input type="number" step="0.01" oninput="calculatePhaseAmount(this)" placeholder="25" class="phase-percent w-full bg-white border-none rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500">
         </div>
         <div class="md:col-span-2">
             <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Amount</label>
@@ -501,7 +529,7 @@ function addPhaseRowDetail(phase = {}) {
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">%</label>
-                        <input type="number" value="${phase.percentage || ''}" placeholder="25" class="phase-percent w-full bg-slate-50 border-none rounded-xl px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500">
+                        <input type="number" step="0.01" oninput="calculatePhaseAmount(this)" value="${phase.percentage || ''}" placeholder="25" class="phase-percent w-full bg-slate-50 border-none rounded-xl px-3 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500">
                     </div>
                 </div>
             </div>
@@ -556,10 +584,6 @@ async function saveClientDetails() {
     }
 }
 
-function updatePhaseStatus(index, completed) {
-    // This is now handled by saveClientDetails since we made the UI editable
-}
-
 function addExtraWorkRow(desc = '', amount = '', completed = false) {
     const container = document.getElementById('detailsExtraWorkList');
     if (container.querySelector('p.italic')) container.innerHTML = '';
@@ -594,7 +618,6 @@ function exportToPdf() {
     doc.setFontSize(11);
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
 
-    // Clients Table
     doc.setFontSize(14);
     doc.text('Client Revenue Ledger', 14, 45);
     
@@ -611,7 +634,6 @@ function exportToPdf() {
         body: clientRows,
     });
 
-    // Expenses Table
     const finalY = doc.lastAutoTable.finalY + 20;
     doc.text('Miscellaneous Expenses', 14, finalY);
     
@@ -629,7 +651,6 @@ function exportToPdf() {
 function exportToExcel() {
     const wb = XLSX.utils.book_new();
     
-    // Clients Sheet
     const clientData = financeData.clients.map(c => {
         const payments = financeData.payments.filter(p => p.clientname === c.clientname);
         const received = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
@@ -644,7 +665,6 @@ function exportToExcel() {
     const clientWs = XLSX.utils.json_to_sheet(clientData);
     XLSX.utils.book_append_sheet(wb, clientWs, "Clients");
     
-    // Expenses Sheet
     const expenseData = financeData.expenses.map(e => ({
         'Category': e.category,
         'Description': e.description,
@@ -750,8 +770,8 @@ async function deleteTask(id) {
     finally { showLoading(false); }
 }
 
-// Plan for the Day
-document.getElementById('planBtn').onclick = () => {
+// Daily Plan Logic
+function showDailyPlan() {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, '0');
     const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -785,12 +805,9 @@ document.getElementById('planBtn').onclick = () => {
     }
     
     openModal('planModal');
-};
+}
 
-document.getElementById('closePlanModal').onclick = () => closeModal('planModal');
-
-// WhatsApp Sharing
-document.getElementById('whatsappTextBtn').onclick = () => {
+function sharePlanWhatsApp() {
     const activeTasks = tasks.filter(t => t.status !== 'Completed');
     let text = `*Thesis Consultants - Plan for ${formatDate(new Date())}*\n\n`;
     
@@ -804,9 +821,9 @@ document.getElementById('whatsappTextBtn').onclick = () => {
     
     text += `\n_Developed by Werwoods Intelligence_`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-};
+}
 
-document.getElementById('downloadImageBtn').onclick = () => {
+function downloadPlanImage() {
     const area = document.getElementById('planCaptureArea');
     html2canvas(area).then(canvas => {
         const link = document.createElement('a');
@@ -814,9 +831,9 @@ document.getElementById('downloadImageBtn').onclick = () => {
         link.href = canvas.toDataURL();
         link.click();
     });
-};
+}
 
-document.getElementById('directShareBtn').onclick = async () => {
+async function sharePlanDirect() {
     const area = document.getElementById('planCaptureArea');
     const canvas = await html2canvas(area);
     canvas.toBlob(async (blob) => {
@@ -836,9 +853,9 @@ document.getElementById('directShareBtn').onclick = async () => {
             alert('Your browser does not support direct file sharing. Please use the "Download" or "Copy to Clipboard" options.');
         }
     });
-};
+}
 
-document.getElementById('copyClipboardBtn').onclick = async () => {
+async function copyPlanToClipboard() {
     const area = document.getElementById('planCaptureArea');
     const canvas = await html2canvas(area);
     canvas.toBlob(async (blob) => {
@@ -852,4 +869,4 @@ document.getElementById('copyClipboardBtn').onclick = async () => {
             alert('Failed to copy.');
         }
     });
-};
+}
